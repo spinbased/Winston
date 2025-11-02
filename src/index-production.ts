@@ -65,12 +65,31 @@ Remember: You are not providing legal advice, but legal education and informatio
 // Session storage for conversation context
 const sessions = new Map<string, Array<{role: 'user' | 'assistant', content: string}>>();
 
+// Message deduplication to prevent double responses
+const processedMessages = new Set<string>();
+
 // Get or create session
 function getSession(userId: string) {
   if (!sessions.has(userId)) {
     sessions.set(userId, []);
   }
   return sessions.get(userId)!;
+}
+
+// Check if message was already processed
+function isMessageProcessed(messageId: string): boolean {
+  if (processedMessages.has(messageId)) {
+    return true;
+  }
+  processedMessages.add(messageId);
+
+  // Clean up old message IDs (keep last 1000)
+  if (processedMessages.size > 1000) {
+    const toDelete = Array.from(processedMessages).slice(0, 500);
+    toDelete.forEach(id => processedMessages.delete(id));
+  }
+
+  return false;
 }
 
 // Add to session with limit
@@ -100,10 +119,17 @@ app.message(async ({ message, say }) => {
 
   const text = 'text' in message ? message.text : '';
   const userId = (message as any).user;
+  const messageTs = (message as any).ts;
 
   if (!text) return;
 
-  console.log(`📩 [${userId}] Message: "${text.substring(0, 50)}..."`);
+  // Deduplicate messages
+  if (isMessageProcessed(messageTs)) {
+    console.log(`⚠️ Skipping duplicate message: ${messageTs}`);
+    return;
+  }
+
+  console.log(`📩 [${userId}] Message: "${text.substring(0, 50)}..." (ts: ${messageTs})`);
 
   if (!anthropic) {
     await say('⚠️ AI not configured. Please set ANTHROPIC_API_KEY in Railway.');
@@ -259,13 +285,20 @@ app.command('/legal-help', async ({ ack, respond, command }) => {
 app.event('app_mention', async ({ event, say }) => {
   const text = event.text.replace(/<@[A-Z0-9]+>/g, '').trim();
   const userId = event.user;
+  const eventTs = event.ts;
+
+  // Deduplicate events
+  if (isMessageProcessed(eventTs)) {
+    console.log(`⚠️ Skipping duplicate mention: ${eventTs}`);
+    return;
+  }
 
   if (!userId) {
     console.error('❌ No user in mention event');
     return;
   }
 
-  console.log(`👋 Mention from ${userId}: "${text.substring(0, 50)}..."`);
+  console.log(`👋 Mention from ${userId}: "${text.substring(0, 50)}..." (ts: ${eventTs})`);
 
   if (!text) {
     await say({
