@@ -1,0 +1,231 @@
+==========================================
+RAILWAY ENVIRONMENT VARIABLES REFERENCE
+==========================================
+
+Quick copy-paste reference for Railway deployment.
+
+==========================================
+LEVEL 1: MINIMAL MODE (Required)
+==========================================
+
+Add these TWO variables to Railway dashboard:
+
+Variable Name: SLACK_BOT_TOKEN
+Value: xoxb-your-actual-token-here
+Where: https://api.slack.com/apps → OAuth & Permissions → Bot User OAuth Token
+
+Variable Name: SLACK_SIGNING_SECRET
+Value: your-actual-signing-secret-here
+Where: https://api.slack.com/apps → Basic Information → Signing Secret
+
+==========================================
+LEVEL 2: FULL MODE (Add Redis)
+==========================================
+
+First, create Redis service in Railway:
+1. Railway dashboard → "+ New"
+2. Select "Database" → "Add Redis"
+3. Click Redis service → Variables tab
+4. Copy the REDIS_URL value
+
+Then add to app service:
+
+Variable Name: REDIS_URL
+Value: redis://default:password@host:port
+Where: From Railway Redis service Variables tab
+
+==========================================
+LEVEL 3: AI ENABLED (Add Anthropic)
+==========================================
+
+Get API key from Anthropic:
+1. Go to https://console.anthropic.com
+2. Sign up or login
+3. Navigate to API Keys
+4. Create new key
+
+Then add to Railway:
+
+Variable Name: ANTHROPIC_API_KEY
+Value: sk-ant-your-actual-key-here
+Where: https://console.anthropic.com → API Keys
+
+==========================================
+LEVEL 4: COMPLETE WITH RAG (Add Pinecone)
+==========================================
+
+Get credentials from Pinecone:
+1. Go to https://www.pinecone.io
+2. Create account and project
+3. Create index named "legal-knowledge"
+4. Get API key and environment
+
+Then add THREE variables to Railway:
+
+Variable Name: PINECONE_API_KEY
+Value: your-pinecone-api-key
+Where: Pinecone dashboard → API Keys
+
+Variable Name: PINECONE_ENVIRONMENT
+Value: us-east1-gcp
+Where: Pinecone dashboard → Environment/Region
+
+Variable Name: PINECONE_INDEX_NAME
+Value: legal-knowledge
+Where: Name you gave when creating Pinecone index
+
+==========================================
+OPTIONAL VARIABLES
+==========================================
+
+Variable Name: OPENAI_API_KEY
+Value: sk-your-openai-key
+Purpose: Fallback AI provider
+Where: https://platform.openai.com/api-keys
+
+Variable Name: NODE_ENV
+Value: production
+Purpose: Set environment mode
+Note: Auto-set by Railway
+
+Variable Name: PORT
+Value: 3000
+Purpose: Server port
+Note: Auto-set by Railway
+
+==========================================
+HOW TO ADD VARIABLES IN RAILWAY
+==========================================
+
+Via Dashboard:
+1. Open Railway project
+2. Click your service
+3. Go to "Variables" tab
+4. Click "+ New Variable"
+5. Enter name and value
+6. Click "Add"
+
+Via Railway CLI:
+railway variables set VARIABLE_NAME=value
+
+==========================================
+VERIFICATION CHECKLIST
+==========================================
+
+Minimal Mode:
+[ ] SLACK_BOT_TOKEN starts with "xoxb-"
+[ ] SLACK_SIGNING_SECRET is 32 characters
+
+Full Mode:
+[ ] REDIS_URL format: redis://default:password@host:port
+[ ] Redis service is running in Railway
+
+AI Enabled:
+[ ] ANTHROPIC_API_KEY starts with "sk-ant-"
+[ ] Key is valid at console.anthropic.com
+
+RAG Enabled:
+[ ] PINECONE_API_KEY is set
+[ ] PINECONE_ENVIRONMENT matches dashboard
+[ ] PINECONE_INDEX_NAME matches created index
+[ ] Index exists in Pinecone dashboard
+
+==========================================
+SECURITY NOTES
+==========================================
+
+DO:
+✓ Use Railway Variables (encrypted)
+✓ Rotate keys regularly
+✓ Use different keys for dev/prod
+✓ Monitor API usage
+
+DON'T:
+✗ Commit keys to git
+✗ Share keys via email/Slack
+✗ Hardcode in source code
+✗ Log keys in console
+
+==========================================
+TROUBLESHOOTING
+==========================================
+
+If bot doesn't respond:
+1. Verify both Slack variables are set
+2. Check values are correct (no extra spaces)
+3. Restart Railway deployment
+4. Check Railway logs for errors
+
+If Redis connection fails:
+1. Verify Redis service is running
+2. Check REDIS_URL is in app service (not Redis service)
+3. Ensure URL format is correct
+4. Check both services are in same Railway project
+
+If AI doesn't work:
+1. Verify ANTHROPIC_API_KEY is set
+2. Check key is valid at console.anthropic.com
+3. Check API usage hasn't exceeded limits
+4. Review Railway logs for API errors
+
+==========================================
+QUICK START COMMAND
+==========================================
+
+After setting Slack variables, test deployment:
+
+curl https://your-app.up.railway.app/health
+
+Expected response:
+{"status":"ok","message":"Winston minimal mode"}
+
+==========================================
+DEPLOYMENT TIMELINE
+==========================================
+
+Minimal Mode: 5-10 minutes
+├── Set Slack variables (2 min)
+├── Push to GitHub (1 min)
+├── Railway build & deploy (5 min)
+└── Test in Slack (1 min)
+
+Add Redis: +10-15 minutes
+├── Create Redis service (2 min)
+├── Add REDIS_URL (2 min)
+├── Update config files (3 min)
+├── Commit & push (1 min)
+├── Railway rebuild (5 min)
+└── Test (2 min)
+
+Add AI: +5 minutes
+├── Get Anthropic key (2 min)
+├── Add to Railway (1 min)
+├── Auto-redeploy (1 min)
+└── Test (1 min)
+
+Add RAG: +20-30 minutes
+├── Setup Pinecone (5 min)
+├── Add variables (2 min)
+├── Create index (3 min)
+├── Deploy (5 min)
+└── Populate data (10+ min)
+
+==========================================
+SUPPORT
+==========================================
+
+Documentation:
+- RAILWAY-QUICK-FIX.md
+- RAILWAY-ENV-CHECKLIST.md
+- DEPLOYMENT-CHECKLIST.md
+- DEPLOYMENT-SUMMARY.md
+
+External:
+- Railway: https://docs.railway.app
+- Slack: https://api.slack.com/docs
+- Anthropic: https://docs.anthropic.com
+
+==========================================
+Last Updated: 2025-11-02
+Version: 1.0
+==========================================
