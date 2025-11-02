@@ -3,7 +3,7 @@
  * Complete integration with session management, caching, voice, and all 30 commands
  */
 
-import { App } from '@slack/bolt';
+import { App, ExpressReceiver } from '@slack/bolt';
 import { LegalAssistantService } from '../services/legal-assistant.service';
 import { SessionManager } from '../services/session.service';
 import { ResponseCache } from '../services/response-cache.service';
@@ -15,6 +15,7 @@ import { registerGeneralLegalCommands } from './commands/general-legal';
 
 export class EnhancedLegalSlackBot {
   private app: App;
+  private receiver: ExpressReceiver;
   private legalAssistant: LegalAssistantService;
   private sessionManager: SessionManager;
   private responseCache: ResponseCache;
@@ -26,11 +27,15 @@ export class EnhancedLegalSlackBot {
       throw new Error('Slack credentials not configured');
     }
 
+    // Use ExpressReceiver for HTTP mode (required for Railway/Vercel)
+    this.receiver = new ExpressReceiver({
+      signingSecret: process.env.SLACK_SIGNING_SECRET,
+      processBeforeResponse: true,
+    });
+
     this.app = new App({
       token: process.env.SLACK_BOT_TOKEN,
-      signingSecret: process.env.SLACK_SIGNING_SECRET,
-      socketMode: process.env.SLACK_APP_TOKEN ? true : false,
-      appToken: process.env.SLACK_APP_TOKEN,
+      receiver: this.receiver,
     });
 
     this.legalAssistant = new LegalAssistantService();
@@ -314,7 +319,9 @@ export class EnhancedLegalSlackBot {
   }
 
   async start(port: number = 3000) {
+    // Start the Express server with Slack endpoint at /slack/events
     await this.app.start(port);
+    console.log(`⚡️ Slack events endpoint ready at /slack/events`);
     console.log(`⚖️ Enhanced Legal Slack Bot is running on port ${port}!`);
     console.log('✅ Session management active');
     console.log('✅ Response caching active');
