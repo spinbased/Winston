@@ -1,0 +1,15 @@
+node_modules/
+.git/
+.env
+.env.*
+*.log
+logs/
+data/
+scripts/data-processing/*.json
+scripts/data-processing/*.html
+tests/
+coverage/
+.vscode/
+.idea/
+*.md
+!README.md

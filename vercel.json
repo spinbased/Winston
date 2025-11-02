@@ -1,35 +1,7 @@
 {
   "version": 2,
-  "name": "winston-legal-ai",
-  "builds": [
-    {
-      "src": "dist/index.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/health",
-      "dest": "dist/routes/health.js"
-    },
-    {
-      "src": "/metrics",
-      "dest": "dist/routes/metrics.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "dist/index.js"
-    }
-  ],
   "env": {
     "NODE_ENV": "production",
     "LOG_LEVEL": "info"
-  },
-  "regions": ["iad1"],
-  "functions": {
-    "dist/index.js": {
-      "memory": 3008,
-      "maxDuration": 60
-    }
   }
 }

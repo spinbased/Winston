@@ -1,0 +1,90 @@
+{
+  "display_information": {
+    "name": "Winston Legal AI",
+    "description": "AI Legal Defense System with 805,000+ legal documents",
+    "background_color": "#1a1d21"
+  },
+  "features": {
+    "app_home": {
+      "home_tab_enabled": true,
+      "messages_tab_enabled": true,
+      "messages_tab_read_only_enabled": false
+    },
+    "bot_user": {
+      "display_name": "Winston Legal AI",
+      "always_online": true
+    },
+    "slash_commands": [
+      {
+        "command": "/legal-help",
+        "url": "https://your-winston.vercel.app/slack/events",
+        "description": "Get help with any legal question",
+        "usage_hint": "What are my constitutional rights?"
+      },
+      {
+        "command": "/constitutional",
+        "url": "https://your-winston.vercel.app/slack/events",
+        "description": "Ask about constitutional law and rights",
+        "usage_hint": "4th amendment search and seizure"
+      },
+      {
+        "command": "/define",
+        "url": "https://your-winston.vercel.app/slack/events",
+        "description": "Define legal terms and concepts",
+        "usage_hint": "habeas corpus"
+      },
+      {
+        "command": "/tax-strategy",
+        "url": "https://your-winston.vercel.app/slack/events",
+        "description": "Legal tax reduction strategies",
+        "usage_hint": "reduce my taxes legally"
+      },
+      {
+        "command": "/new-session",
+        "url": "https://your-winston.vercel.app/slack/events",
+        "description": "Start a new conversation session",
+        "usage_hint": ""
+      }
+    ]
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": [
+        "app_mentions:read",
+        "channels:history",
+        "channels:read",
+        "chat:write",
+        "chat:write.public",
+        "commands",
+        "files:read",
+        "groups:history",
+        "groups:read",
+        "im:history",
+        "im:read",
+        "im:write",
+        "mpim:history",
+        "mpim:read",
+        "users:read"
+      ]
+    }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "request_url": "https://your-winston.vercel.app/slack/events",
+      "bot_events": [
+        "app_mention",
+        "message.channels",
+        "message.groups",
+        "message.im",
+        "message.mpim"
+      ]
+    },
+    "interactivity": {
+      "is_enabled": true,
+      "request_url": "https://your-winston.vercel.app/slack/events"
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}
