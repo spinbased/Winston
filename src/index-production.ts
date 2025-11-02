@@ -141,14 +141,14 @@ app.message(async ({ message, say }) => {
 
   try {
     await say({
-      text: '🤔 Analyzing your legal question with Claude 3.5 Haiku...',
+      text: '🤔 Analyzing your legal question...',
       ...replyOptions
     });
 
     // Get conversation history
     const history = getSession(userId);
 
-    console.log(`🧠 Calling Claude 3.5 Haiku (with ${history.length} context messages)...`);
+    console.log(`🧠 Calling Claude AI (with ${history.length} context messages)...`);
 
     // Build messages with context
     const messages: Array<{role: 'user' | 'assistant', content: string}> = [
@@ -157,7 +157,7 @@ app.message(async ({ message, say }) => {
     ];
 
     const response = await anthropic.messages.create({
-      model: 'claude-3-5-haiku-20241022', // Latest Haiku model
+      model: 'claude-haiku-4-5', // Claude Haiku 4.5 - Latest and most capable
       max_tokens: 4096, // Higher for detailed analysis
       temperature: 0.3,
       system: LEGAL_SYSTEM_PROMPT,
@@ -171,7 +171,7 @@ app.message(async ({ message, say }) => {
     addToSession(userId, 'assistant', answer);
 
     await say({
-      text: `⚖️ ${answer}\n\n_Powered by Winston AI | Claude 3.5 Haiku_`,
+      text: `⚖️ ${answer}\n\n_Winston AI | Powered by LEVEL 7 LABS_`,
       ...replyOptions
     });
 
@@ -217,7 +217,7 @@ app.command('/legal-help', async ({ ack, respond, command }) => {
 
   if (!question) {
     await respond({
-      text: '⚖️ **Winston AI Legal Assistant**\n\nUsage: `/legal-help [your question]`\n\nExample:\n`/legal-help What are my rights during a traffic stop?`\n\n_Powered by Claude 3.5 Haiku_',
+      text: '⚖️ **Winston AI Legal Assistant**\n\nUsage: `/legal-help [your question]`\n\nExample:\n`/legal-help What are my rights during a traffic stop?`\n\n_Winston AI | Powered by LEVEL 7 LABS_',
       response_type: 'ephemeral'
     });
     return;
@@ -233,7 +233,7 @@ app.command('/legal-help', async ({ ack, respond, command }) => {
 
   try {
     await respond({
-      text: '🤔 Analyzing with Claude 3.5 Haiku...',
+      text: '🤔 Analyzing...',
       response_type: 'ephemeral'
     });
 
@@ -246,7 +246,7 @@ app.command('/legal-help', async ({ ack, respond, command }) => {
     ];
 
     const message = await anthropic.messages.create({
-      model: 'claude-3-5-haiku-20241022',
+      model: 'claude-haiku-4-5',
       max_tokens: 4096,
       temperature: 0.3,
       system: LEGAL_SYSTEM_PROMPT,
@@ -260,7 +260,7 @@ app.command('/legal-help', async ({ ack, respond, command }) => {
     addToSession(userId, 'assistant', answer);
 
     await respond({
-      text: `⚖️ **Legal Analysis**\n\n${answer}\n\n_Powered by Winston AI | Claude 3.5 Haiku_`,
+      text: `⚖️ **Legal Analysis**\n\n${answer}\n\n_Winston AI | Powered by LEVEL 7 LABS_`,
       response_type: 'in_channel',
     });
 
@@ -302,7 +302,7 @@ app.event('app_mention', async ({ event, say }) => {
 
   if (!text) {
     await say({
-      text: '👋 Hello! I\'m Winston, your AI legal assistant powered by Claude 3.5 Haiku.\n\nAsk me any legal question and I\'ll provide comprehensive analysis.',
+      text: '👋 Hello! I\'m Winston, your AI legal assistant.\n\nAsk me any legal question and I\'ll provide comprehensive analysis.\n\n_Winston AI | Powered by LEVEL 7 LABS_',
       thread_ts: event.ts,
     });
     return;
@@ -331,7 +331,7 @@ app.event('app_mention', async ({ event, say }) => {
     ];
 
     const response = await anthropic.messages.create({
-      model: 'claude-3-5-haiku-20241022',
+      model: 'claude-haiku-4-5',
       max_tokens: 4096,
       temperature: 0.3,
       system: LEGAL_SYSTEM_PROMPT,
@@ -345,7 +345,7 @@ app.event('app_mention', async ({ event, say }) => {
     addToSession(userId, 'assistant', answer);
 
     await say({
-      text: `⚖️ ${answer}\n\n_Powered by Winston AI | Claude 3.5 Haiku_`,
+      text: `⚖️ ${answer}\n\n_Winston AI | Powered by LEVEL 7 LABS_`,
       thread_ts: event.ts,
     });
 
@@ -370,14 +370,15 @@ receiver.router.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
     message: 'Winston AI Legal Assistant',
-    version: 'production-v1.0',
-    model: 'claude-3-5-haiku-20241022',
+    version: 'production-v2.0',
+    model: 'claude-haiku-4-5',
     ai: anthropic ? 'enabled' : 'disabled',
     features: {
       conversation_memory: true,
-      haiku_35: true,
+      haiku_45: true,
       session_management: true,
-      context_aware: true
+      context_aware: true,
+      deduplication: true
     },
     sessions: sessions.size
   });
@@ -389,8 +390,9 @@ const port = parseInt(process.env.PORT || '3000', 10);
   await app.start(port);
   console.log('\n✅ Winston AI Legal Assistant is LIVE');
   console.log(`📡 Port: ${port}`);
-  console.log(`🤖 AI Model: Claude 3.5 Haiku`);
+  console.log(`🤖 AI Model: Claude AI (claude-haiku-4-5)`);
   console.log(`💾 Session Management: Active`);
-  console.log(`🎯 Features: Conversation memory, context-aware responses`);
+  console.log(`🎯 Features: Conversation memory, context-aware responses, deduplication`);
+  console.log(`🏢 Powered by LEVEL 7 LABS`);
   console.log('\n⚖️ Ready to provide expert legal analysis!\n');
 })();
