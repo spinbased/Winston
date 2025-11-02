@@ -38,11 +38,26 @@ export class EnhancedLegalSlackBot {
       receiver: this.receiver,
     });
 
-    this.legalAssistant = new LegalAssistantService();
+    // Only initialize services if API keys are available
+    const hasApiKeys = process.env.ANTHROPIC_API_KEY &&
+                       !process.env.ANTHROPIC_API_KEY.includes('placeholder');
+
+    if (hasApiKeys) {
+      this.legalAssistant = new LegalAssistantService();
+      this.embeddingService = new EmbeddingService();
+      this.voiceService = new VoiceService();
+    } else {
+      console.warn('⚠️  Running in limited mode - AI services not initialized');
+      // @ts-ignore - will be initialized later
+      this.legalAssistant = null;
+      // @ts-ignore
+      this.embeddingService = null;
+      // @ts-ignore
+      this.voiceService = null;
+    }
+
     this.sessionManager = new SessionManager();
     this.responseCache = new ResponseCache();
-    this.embeddingService = new EmbeddingService();
-    this.voiceService = new VoiceService();
 
     this.registerHandlers();
   }
@@ -56,6 +71,12 @@ export class EnhancedLegalSlackBot {
       const userId = (message as any).user;
 
       if (!text) return;
+
+      // Check if services are initialized
+      if (!this.legalAssistant || !this.embeddingService) {
+        await say('⚠️ Winston is running in limited mode. Please configure API keys to enable AI features.');
+        return;
+      }
 
       try {
         // Get or create session
