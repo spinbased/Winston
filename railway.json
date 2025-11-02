@@ -5,7 +5,7 @@
     "buildCommand": "npm install && npm run build"
   },
   "deploy": {
-    "startCommand": "node dist/index-debug.js",
+    "startCommand": "node dist/index-final.js",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",
