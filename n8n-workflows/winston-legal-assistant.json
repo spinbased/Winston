@@ -1,0 +1,232 @@
+{
+  "name": "Winston Legal Assistant Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "winston-query",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "winston-legal-query"
+    },
+    {
+      "parameters": {
+        "url": "={{$env.WINSTON_API_URL}}/api/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "question",
+              "value": "={{$json.body.question}}"
+            },
+            {
+              "name": "userId",
+              "value": "={{$json.body.userId || 'n8n-user'}}"
+            },
+            {
+              "name": "context",
+              "value": "={{$json.body.context || {}}}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "name": "Call Winston API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.documentType}}",
+              "operation": "equals",
+              "value2": "tax-law"
+            }
+          ]
+        }
+      },
+      "name": "Is Tax Question?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.TAX_EXPERT_API}}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{$json.answer}}"
+            }
+          ]
+        }
+      },
+      "name": "Enhanced Tax Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}"
+      },
+      "name": "Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "post",
+        "channelId": "={{$env.SLACK_CHANNEL}}",
+        "text": "={{$json.answer}}",
+        "attachments": [],
+        "otherOptions": {}
+      },
+      "name": "Send to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "winston:cache:{{$json.body.question}}",
+        "value": "={{JSON.stringify($json)}}",
+        "options": {
+          "ttl": 3600
+        }
+      },
+      "name": "Cache Response",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [650, 450]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Log query metrics\nconst metrics = {\n  timestamp: new Date().toISOString(),\n  question: $json.body.question,\n  userId: $json.body.userId,\n  responseTime: Date.now() - $json.startTime,\n  cached: $json.cached || false,\n  documentType: $json.documentType\n};\n\n// Store in items for next node\nreturn [{ json: { metrics, ...items[0].json } }];"
+      },
+      "name": "Track Metrics",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 450]
+    },
+    {
+      "parameters": {
+        "table": "winston_queries",
+        "columns": "timestamp,user_id,question,response_time,cached,document_type",
+        "additionalFields": {}
+      },
+      "name": "Log to Database",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [650, 550]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Track Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Winston API": {
+      "main": [
+        [
+          {
+            "node": "Is Tax Question?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Cache Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Tax Question?": {
+      "main": [
+        [
+          {
+            "node": "Enhanced Tax Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enhanced Tax Analysis": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Slack": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Track Metrics": {
+      "main": [
+        [
+          {
+            "node": "Call Winston API",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true
+  }
+}
