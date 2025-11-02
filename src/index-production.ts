@@ -5,6 +5,7 @@
 
 import { App, ExpressReceiver } from '@slack/bolt';
 import Anthropic from '@anthropic-ai/sdk';
+import { analyzeDocument, summarizeDocument, extractKeyClauses, assessRisks } from './lib/document-analysis';
 
 console.log('🚀 Winston AI Legal Assistant - Production Mode');
 console.log('=' .repeat(60));
@@ -739,6 +740,278 @@ _This is educational information. Call 911 for emergencies._
 _Winston AI | Powered by LEVEL 7 LABS_`,
     response_type: 'ephemeral'
   });
+});
+
+// Document Analysis Commands
+app.command('/analyze-contract', async ({ ack, respond, command }) => {
+  await ack();
+
+  const userId = command.user_id;
+  const documentText = command.text.trim();
+
+  if (!userId || !documentText) {
+    await respond({
+      text: `⚖️ **Contract Analysis**
+
+Usage: \`/analyze-contract [paste contract text]\`
+
+Analyzes contracts and provides:
+• Summary of key terms
+• Obligations and rights
+• Risk assessment
+• Red flags and recommendations
+
+_Winston AI | Powered by LEVEL 7 LABS_`,
+      response_type: 'ephemeral'
+    });
+    return;
+  }
+
+  if (!anthropic) {
+    await respond({ text: '⚠️ AI not configured.', response_type: 'ephemeral' });
+    return;
+  }
+
+  try {
+    await respond({ text: '📄 Analyzing contract...', response_type: 'ephemeral' });
+
+    const analysis = await analyzeDocument(documentText, 'contract', anthropic);
+
+    await respond({
+      text: `⚖️ **Contract Analysis**\n\n${analysis}\n\n_Winston AI | Powered by LEVEL 7 LABS_`,
+      response_type: 'in_channel',
+    });
+
+    console.log(`✅ Contract analysis completed for user ${userId}`);
+  } catch (error: any) {
+    console.error('❌ Contract analysis error:', error);
+    await respond({ text: `❌ Error: ${error.message}`, response_type: 'ephemeral' });
+  }
+});
+
+app.command('/analyze-document', async ({ ack, respond, command }) => {
+  await ack();
+
+  const userId = command.user_id;
+  const documentText = command.text.trim();
+
+  if (!userId || !documentText) {
+    await respond({
+      text: `⚖️ **Document Analysis**
+
+Usage: \`/analyze-document [paste document text]\`
+
+Analyzes legal documents and provides:
+• Document type identification
+• Purpose and key provisions
+• Legal implications
+• Action items
+
+_Winston AI | Powered by LEVEL 7 LABS_`,
+      response_type: 'ephemeral'
+    });
+    return;
+  }
+
+  if (!anthropic) {
+    await respond({ text: '⚠️ AI not configured.', response_type: 'ephemeral' });
+    return;
+  }
+
+  try {
+    await respond({ text: '📄 Analyzing document...', response_type: 'ephemeral' });
+
+    const analysis = await analyzeDocument(documentText, 'legal', anthropic);
+
+    await respond({
+      text: `⚖️ **Document Analysis**\n\n${analysis}\n\n_Winston AI | Powered by LEVEL 7 LABS_`,
+      response_type: 'in_channel',
+    });
+
+    console.log(`✅ Document analysis completed for user ${userId}`);
+  } catch (error: any) {
+    console.error('❌ Document analysis error:', error);
+    await respond({ text: `❌ Error: ${error.message}`, response_type: 'ephemeral' });
+  }
+});
+
+app.command('/summarize-document', async ({ ack, respond, command }) => {
+  await ack();
+
+  const userId = command.user_id;
+  const documentText = command.text.trim();
+
+  if (!userId || !documentText) {
+    await respond({
+      text: `⚖️ **Document Summarization**
+
+Usage: \`/summarize-document [paste document text]\`
+
+Creates a comprehensive summary of legal documents.
+
+_Winston AI | Powered by LEVEL 7 LABS_`,
+      response_type: 'ephemeral'
+    });
+    return;
+  }
+
+  if (!anthropic) {
+    await respond({ text: '⚠️ AI not configured.', response_type: 'ephemeral' });
+    return;
+  }
+
+  try {
+    await respond({ text: '📄 Summarizing document...', response_type: 'ephemeral' });
+
+    const summary = await summarizeDocument(documentText, 'detailed', anthropic);
+
+    await respond({
+      text: `⚖️ **Document Summary**\n\n${summary}\n\n_Winston AI | Powered by LEVEL 7 LABS_`,
+      response_type: 'in_channel',
+    });
+
+    console.log(`✅ Document summarized for user ${userId}`);
+  } catch (error: any) {
+    console.error('❌ Summarization error:', error);
+    await respond({ text: `❌ Error: ${error.message}`, response_type: 'ephemeral' });
+  }
+});
+
+app.command('/extract-clauses', async ({ ack, respond, command }) => {
+  await ack();
+
+  const userId = command.user_id;
+  const contractText = command.text.trim();
+
+  if (!userId || !contractText) {
+    await respond({
+      text: `⚖️ **Clause Extraction**
+
+Usage: \`/extract-clauses [paste contract text]\`
+
+Extracts and categorizes:
+• Payment terms
+• Termination conditions
+• Liability provisions
+• Confidentiality clauses
+• IP rights
+
+_Winston AI | Powered by LEVEL 7 LABS_`,
+      response_type: 'ephemeral'
+    });
+    return;
+  }
+
+  if (!anthropic) {
+    await respond({ text: '⚠️ AI not configured.', response_type: 'ephemeral' });
+    return;
+  }
+
+  try {
+    await respond({ text: '📄 Extracting clauses...', response_type: 'ephemeral' });
+
+    const clauses = await extractKeyClauses(contractText, anthropic);
+
+    let result = '⚖️ **Key Clauses Extracted**\n\n';
+
+    if (clauses.payment.length > 0) {
+      result += `**💰 Payment Terms:**\n${clauses.payment.map(c => `• ${c.substring(0, 200)}...`).join('\n')}\n\n`;
+    }
+
+    if (clauses.termination.length > 0) {
+      result += `**🚪 Termination:**\n${clauses.termination.map(c => `• ${c.substring(0, 200)}...`).join('\n')}\n\n`;
+    }
+
+    if (clauses.liability.length > 0) {
+      result += `**⚠️ Liability:**\n${clauses.liability.map(c => `• ${c.substring(0, 200)}...`).join('\n')}\n\n`;
+    }
+
+    if (clauses.confidentiality.length > 0) {
+      result += `**🔒 Confidentiality:**\n${clauses.confidentiality.map(c => `• ${c.substring(0, 200)}...`).join('\n')}\n\n`;
+    }
+
+    if (clauses.intellectual_property.length > 0) {
+      result += `**💡 Intellectual Property:**\n${clauses.intellectual_property.map(c => `• ${c.substring(0, 200)}...`).join('\n')}\n\n`;
+    }
+
+    result += '\n_Winston AI | Powered by LEVEL 7 LABS_';
+
+    await respond({
+      text: result,
+      response_type: 'in_channel',
+    });
+
+    console.log(`✅ Clauses extracted for user ${userId}`);
+  } catch (error: any) {
+    console.error('❌ Clause extraction error:', error);
+    await respond({ text: `❌ Error: ${error.message}`, response_type: 'ephemeral' });
+  }
+});
+
+app.command('/assess-risks', async ({ ack, respond, command }) => {
+  await ack();
+
+  const userId = command.user_id;
+  const documentText = command.text.trim();
+
+  if (!userId || !documentText) {
+    await respond({
+      text: `⚖️ **Risk Assessment**
+
+Usage: \`/assess-risks [paste document text]\`
+
+Provides comprehensive risk analysis:
+• High-risk items (immediate attention)
+• Medium-risk items (should address)
+• Low-risk items (monitor)
+• Recommendations
+
+_Winston AI | Powered by LEVEL 7 LABS_`,
+      response_type: 'ephemeral'
+    });
+    return;
+  }
+
+  if (!anthropic) {
+    await respond({ text: '⚠️ AI not configured.', response_type: 'ephemeral' });
+    return;
+  }
+
+  try {
+    await respond({ text: '📄 Assessing risks...', response_type: 'ephemeral' });
+
+    const risks = await assessRisks(documentText, 'legal document', anthropic);
+
+    let result = '⚖️ **Risk Assessment**\n\n';
+
+    if (risks.high_risk.length > 0) {
+      result += `**🚨 HIGH RISK (Immediate Attention):**\n${risks.high_risk.map(r => `• ${r}`).join('\n')}\n\n`;
+    }
+
+    if (risks.medium_risk.length > 0) {
+      result += `**⚠️ MEDIUM RISK (Should Address):**\n${risks.medium_risk.map(r => `• ${r}`).join('\n')}\n\n`;
+    }
+
+    if (risks.low_risk.length > 0) {
+      result += `**ℹ️ LOW RISK (Monitor):**\n${risks.low_risk.map(r => `• ${r}`).join('\n')}\n\n`;
+    }
+
+    if (risks.recommendations.length > 0) {
+      result += `**✅ Recommendations:**\n${risks.recommendations.map(r => `• ${r}`).join('\n')}\n\n`;
+    }
+
+    result += '\n_Winston AI | Powered by LEVEL 7 LABS_';
+
+    await respond({
+      text: result,
+      response_type: 'in_channel',
+    });
+
+    console.log(`✅ Risk assessment completed for user ${userId}`);
+  } catch (error: any) {
+    console.error('❌ Risk assessment error:', error);
+    await respond({ text: `❌ Error: ${error.message}`, response_type: 'ephemeral' });
+  }
 });
 
 // @mentions with context
