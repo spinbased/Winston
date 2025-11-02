@@ -1,1 +1,1 @@
-web: node dist/index-minimal.js
+web: node dist/index.js
