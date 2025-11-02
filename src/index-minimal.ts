@@ -20,6 +20,25 @@ app.command('/legal-help', async ({ ack, respond }) => {
   await respond('✅ Winston is running! Add API keys to enable full features.');
 });
 
+// Handle direct messages
+app.message(async ({ message, say }) => {
+  // Only respond to regular messages (not bot messages)
+  if (message.subtype === undefined || message.subtype === 'file_share') {
+    const text = 'text' in message ? message.text : '';
+    console.log(`[Message] Received DM: "${text}"`);
+    await say('👋 Hello! I\'m Winston, your AI legal assistant.\n\n✅ I\'m running in minimal mode. Add ANTHROPIC_API_KEY to enable full AI legal analysis.\n\nFor now, try: `/legal-help [your question]`');
+  }
+});
+
+// Handle @mentions
+app.event('app_mention', async ({ event, say }) => {
+  console.log(`[Mention] Bot mentioned: "${event.text}"`);
+  await say({
+    text: '👋 Hello! I\'m Winston, your AI legal assistant.\n\n✅ I\'m running in minimal mode. Add ANTHROPIC_API_KEY to enable full AI legal analysis.\n\nFor now, try: `/legal-help [your question]`',
+    thread_ts: event.ts, // Reply in thread
+  });
+});
+
 // Health check
 receiver.router.get('/health', (_req, res) => {
   res.json({ status: 'ok', message: 'Winston minimal mode' });
