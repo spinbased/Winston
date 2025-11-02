@@ -8,6 +8,7 @@ import Anthropic from '@anthropic-ai/sdk';
 const receiver = new ExpressReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET || 'placeholder',
   processBeforeResponse: true,
+  endpoints: '/slack/events',
 });
 
 const app = new App({
