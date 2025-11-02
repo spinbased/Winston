@@ -281,6 +281,466 @@ app.command('/legal-help', async ({ ack, respond, command }) => {
   }
 });
 
+// Helper function for slash commands
+async function handleSlashCommand(
+  command: any,
+  respond: any,
+  commandName: string,
+  contextPrompt: string
+) {
+  const userId = command.user_id;
+  const text = command.text.trim();
+
+  if (!userId) {
+    console.error(`❌ No user_id in ${commandName}`);
+    return;
+  }
+
+  if (!anthropic) {
+    await respond({
+      text: '⚠️ AI not configured.',
+      response_type: 'ephemeral'
+    });
+    return;
+  }
+
+  try {
+    await respond({
+      text: '🤔 Analyzing...',
+      response_type: 'ephemeral'
+    });
+
+    const history = getSession(userId);
+    const fullPrompt = text ? `${contextPrompt}\n\nUser question: ${text}` : contextPrompt;
+
+    const messages: Array<{role: 'user' | 'assistant', content: string}> = [
+      ...history,
+      { role: 'user', content: fullPrompt }
+    ];
+
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4096,
+      temperature: 0.3,
+      system: LEGAL_SYSTEM_PROMPT,
+      messages: messages,
+    });
+
+    const answer = message.content[0].type === 'text' ? message.content[0].text : 'Unable to process';
+
+    addToSession(userId, 'user', fullPrompt);
+    addToSession(userId, 'assistant', answer);
+
+    await respond({
+      text: `⚖️ **${commandName} Analysis**\n\n${answer}\n\n_Winston AI | Powered by LEVEL 7 LABS_`,
+      response_type: 'in_channel',
+    });
+
+    console.log(`✅ ${commandName} response sent`);
+  } catch (error: any) {
+    console.error(`❌ ${commandName} error:`, error);
+    await respond({
+      text: `❌ Error processing ${commandName}`,
+      response_type: 'ephemeral'
+    });
+  }
+}
+
+// Constitutional Law Commands
+app.command('/constitutional', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Constitutional',
+    'Provide detailed constitutional law analysis and interpretation. Focus on U.S. Constitution, amendments, and Supreme Court precedents.'
+  );
+});
+
+app.command('/amendment', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Amendment',
+    'Explain the specific constitutional amendment, its history, interpretation, and relevant case law.'
+  );
+});
+
+app.command('/bill-of-rights', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Bill of Rights',
+    'Analyze the Bill of Rights (first 10 amendments) and explain their protections and limitations.'
+  );
+});
+
+// Rights & Protections Commands
+app.command('/rights', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Rights',
+    'Explain the user\'s legal rights in specific situations, including constitutional and statutory protections.'
+  );
+});
+
+app.command('/miranda', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Miranda Rights',
+    'Explain Miranda rights, when they apply, and what happens if they are violated.'
+  );
+});
+
+app.command('/due-process', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Due Process',
+    'Explain due process rights under the 5th and 14th amendments, both procedural and substantive.'
+  );
+});
+
+// Criminal Law Commands
+app.command('/criminal-defense', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Criminal Defense',
+    'Provide criminal defense information, strategies, and relevant legal precedents.'
+  );
+});
+
+app.command('/search-seizure', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Search & Seizure',
+    'Explain 4th Amendment search and seizure law, warrant requirements, and exceptions.'
+  );
+});
+
+app.command('/arrest-rights', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Arrest Rights',
+    'Explain rights during arrest, booking, interrogation, and detention.'
+  );
+});
+
+// Civil Law Commands
+app.command('/contract-law', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Contract Law',
+    'Analyze contract law principles, formation, breach, remedies, and defenses.'
+  );
+});
+
+app.command('/tort-law', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Tort Law',
+    'Explain tort law including negligence, intentional torts, strict liability, and damages.'
+  );
+});
+
+app.command('/property-law', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Property Law',
+    'Analyze property law including ownership, easements, zoning, and real estate issues.'
+  );
+});
+
+// Legal Definitions & Research
+app.command('/define', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Legal Definition',
+    'Provide the legal definition from Black\'s Law Dictionary and explain its usage in legal contexts.'
+  );
+});
+
+app.command('/case-law', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Case Law',
+    'Research and explain relevant case law, precedents, and judicial interpretations.'
+  );
+});
+
+app.command('/statute', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Statute',
+    'Explain federal or state statutes, their interpretation, and application.'
+  );
+});
+
+// Court & Procedure Commands
+app.command('/court-procedure', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Court Procedure',
+    'Explain court procedures, filing requirements, and litigation process.'
+  );
+});
+
+app.command('/evidence', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Evidence Law',
+    'Explain rules of evidence, admissibility, hearsay, and evidentiary standards.'
+  );
+});
+
+app.command('/appeals', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Appeals',
+    'Explain the appeals process, standards of review, and appellate procedures.'
+  );
+});
+
+// Family & Estate Law
+app.command('/family-law', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Family Law',
+    'Analyze family law issues including divorce, custody, support, and adoption.'
+  );
+});
+
+app.command('/estate-law', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Estate Law',
+    'Explain estate planning, wills, trusts, probate, and inheritance law.'
+  );
+});
+
+// Business & Employment Law
+app.command('/business-law', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Business Law',
+    'Analyze business law including formation, contracts, liability, and corporate governance.'
+  );
+});
+
+app.command('/employment-law', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Employment Law',
+    'Explain employment law including discrimination, wages, benefits, and workplace rights.'
+  );
+});
+
+// Specialized Areas
+app.command('/intellectual-property', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Intellectual Property',
+    'Analyze IP law including patents, trademarks, copyrights, and trade secrets.'
+  );
+});
+
+app.command('/immigration', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Immigration Law',
+    'Explain immigration law, visas, citizenship, deportation, and asylum.'
+  );
+});
+
+app.command('/tax-law', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Tax Law',
+    'Analyze tax law including IRS code, deductions, audits, and tax disputes.'
+  );
+});
+
+app.command('/bankruptcy', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Bankruptcy',
+    'Explain bankruptcy law, chapters 7/11/13, discharge, and creditor rights.'
+  );
+});
+
+// Consumer & Housing
+app.command('/consumer-rights', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Consumer Rights',
+    'Explain consumer protection laws, warranties, fraud, and dispute resolution.'
+  );
+});
+
+app.command('/landlord-tenant', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Landlord-Tenant',
+    'Analyze landlord-tenant law including leases, evictions, security deposits, and repairs.'
+  );
+});
+
+// Traffic & Motor Vehicle
+app.command('/traffic-law', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Traffic Law',
+    'Explain traffic laws, violations, DUI/DWI, license suspension, and traffic court.'
+  );
+});
+
+app.command('/traffic-stop', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Traffic Stop Rights',
+    'Explain your rights during a traffic stop, including search, questioning, and detention.'
+  );
+});
+
+// Legal Process & Help
+app.command('/legal-process', async ({ ack, respond, command }) => {
+  await ack();
+  await handleSlashCommand(
+    command,
+    respond,
+    'Legal Process',
+    'Explain legal processes, timelines, and what to expect in various legal situations.'
+  );
+});
+
+app.command('/find-lawyer', async ({ ack, respond }) => {
+  await ack();
+  await respond({
+    text: `⚖️ **Finding Legal Representation**
+
+**State Bar Associations:**
+• Search your state bar's lawyer referral service
+• Most states: [State Name] State Bar Association
+
+**Free/Low-Cost Legal Aid:**
+• Legal Services Corporation: lsc.gov
+• American Bar Association: findlegalhelp.org
+• Local law schools may have clinics
+
+**Specialized Referrals:**
+• ACLU (civil rights): aclu.org
+• NAACP Legal Defense Fund
+• Immigration: AILA (aila.org)
+• Criminal: National Association of Criminal Defense Lawyers
+
+**What to Look For:**
+✓ Licensed in your state
+✓ Experience in your type of case
+✓ Clear fee structure
+✓ Good communication
+✓ Check disciplinary records
+
+_Winston AI | Powered by LEVEL 7 LABS_`,
+    response_type: 'ephemeral'
+  });
+});
+
+app.command('/legal-emergency', async ({ ack, respond }) => {
+  await ack();
+  await respond({
+    text: `🚨 **Legal Emergency Resources**
+
+**Immediate Threats:**
+• Call 911 for emergencies
+• Domestic violence: 1-800-799-7233
+• Suicide prevention: 988
+
+**Arrest/Detention:**
+• Remain silent - don't talk to police
+• Request a lawyer immediately
+• Don't sign anything without counsel
+• Don't consent to searches
+
+**Eviction/Housing:**
+• Most states require 30+ day notice
+• Don't leave voluntarily
+• Contact legal aid immediately
+• Document everything
+
+**Court Orders:**
+• Restraining orders: Contact local court
+• Emergency custody: Family court
+• Protective orders: Police + court
+
+**Next Steps:**
+1. Document everything
+2. Contact lawyer/legal aid ASAP
+3. Don't make statements
+4. Follow all court orders
+5. Keep all paperwork
+
+_This is educational information. Call 911 for emergencies._
+
+_Winston AI | Powered by LEVEL 7 LABS_`,
+    response_type: 'ephemeral'
+  });
+});
+
 // @mentions with context
 app.event('app_mention', async ({ event, say }) => {
   const text = event.text.replace(/<@[A-Z0-9]+>/g, '').trim();
