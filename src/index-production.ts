@@ -157,7 +157,7 @@ app.message(async ({ message, say }) => {
     ];
 
     const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5', // Claude Haiku 4.5 - Latest and most capable
+      model: 'claude-sonnet-4-20250514', // Claude Sonnet 4 - Better for specialized roles
       max_tokens: 4096, // Higher for detailed analysis
       temperature: 0.3,
       system: LEGAL_SYSTEM_PROMPT,
@@ -246,7 +246,7 @@ app.command('/legal-help', async ({ ack, respond, command }) => {
     ];
 
     const message = await anthropic.messages.create({
-      model: 'claude-haiku-4-5',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 4096,
       temperature: 0.3,
       system: LEGAL_SYSTEM_PROMPT,
@@ -331,7 +331,7 @@ app.event('app_mention', async ({ event, say }) => {
     ];
 
     const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 4096,
       temperature: 0.3,
       system: LEGAL_SYSTEM_PROMPT,
@@ -370,12 +370,12 @@ receiver.router.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
     message: 'Winston AI Legal Assistant',
-    version: 'production-v2.0',
-    model: 'claude-haiku-4-5',
+    version: 'production-v2.1',
+    model: 'claude-sonnet-4-20250514',
     ai: anthropic ? 'enabled' : 'disabled',
     features: {
       conversation_memory: true,
-      haiku_45: true,
+      sonnet_4: true,
       session_management: true,
       context_aware: true,
       deduplication: true
@@ -390,7 +390,7 @@ const port = parseInt(process.env.PORT || '3000', 10);
   await app.start(port);
   console.log('\n✅ Winston AI Legal Assistant is LIVE');
   console.log(`📡 Port: ${port}`);
-  console.log(`🤖 AI Model: Claude AI (claude-haiku-4-5)`);
+  console.log(`🤖 AI Model: Claude Sonnet 4 (claude-sonnet-4-20250514)`);
   console.log(`💾 Session Management: Active`);
   console.log(`🎯 Features: Conversation memory, context-aware responses, deduplication`);
   console.log(`🏢 Powered by LEVEL 7 LABS`);
