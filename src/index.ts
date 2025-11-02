@@ -17,20 +17,25 @@ async function main() {
   console.log('With Session Management, Caching, Voice Support & 30+ Commands');
   console.log('='.repeat(60));
 
-  // Validate environment
+  // Validate environment - only Slack credentials are strictly required
   const required = [
     'SLACK_BOT_TOKEN',
     'SLACK_SIGNING_SECRET',
-    'ANTHROPIC_API_KEY',
-    'OPENAI_API_KEY',
-    'PINECONE_API_KEY',
   ];
 
   const missing = required.filter(key => !process.env[key]);
   if (missing.length > 0) {
     console.error(`\n❌ Missing required environment variables: ${missing.join(', ')}`);
-    console.error('Please configure .env file with all required API keys.');
+    console.error('Please configure Slack credentials in environment variables.');
     process.exit(1);
+  }
+
+  // Warn about missing API keys but don't exit
+  const optional = ['ANTHROPIC_API_KEY', 'OPENAI_API_KEY', 'PINECONE_API_KEY'];
+  const missingOptional = optional.filter(key => !process.env[key] || process.env[key]?.includes('placeholder'));
+  if (missingOptional.length > 0) {
+    console.warn(`\n⚠️  Warning: Some API keys not configured: ${missingOptional.join(', ')}`);
+    console.warn('Bot will start but AI features will be limited until keys are added.');
   }
 
   console.log('\n✅ Environment validated');
