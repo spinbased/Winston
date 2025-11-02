@@ -80,20 +80,22 @@ app.command('/legal-help', async ({ ack, respond, command }) => {
 
 // Handle direct messages
 app.message(async ({ message, say }) => {
-  // Ignore bot messages and threaded replies
-  if (message.subtype || (message as any).thread_ts) return;
-
-  const text = 'text' in message ? message.text : '';
-  if (!text) return;
-
-  console.log(`[DM] Received: "${text}"`);
-
-  if (!anthropic) {
-    await say('👋 Hello! I\'m Winston, your AI legal assistant.\n\n⚠️ AI features are not configured. Please add ANTHROPIC_API_KEY.\n\nFor now, try: `/legal-help [your question]`');
-    return;
-  }
-
   try {
+    // Ignore bot messages and threaded replies
+    if ('subtype' in message && message.subtype) return;
+    if ('thread_ts' in message && message.thread_ts) return;
+    if ('bot_id' in message) return;
+
+    const text = 'text' in message ? message.text : '';
+    if (!text) return;
+
+    console.log(`[DM] Received: "${text}"`);
+
+    if (!anthropic) {
+      await say('👋 Hello! I\'m Winston, your AI legal assistant.\n\n⚠️ AI features are not configured. Please add ANTHROPIC_API_KEY.\n\nFor now, try: `/legal-help [your question]`');
+      return;
+    }
+
     await say('🤔 Let me analyze that...');
 
     const response = await anthropic.messages.create({
@@ -112,7 +114,11 @@ app.message(async ({ message, say }) => {
     await say(`⚖️ ${answer}`);
   } catch (error) {
     console.error('Error processing message:', error);
-    await say('❌ Sorry, I encountered an error processing your request.');
+    try {
+      await say('❌ Sorry, I encountered an error processing your request.');
+    } catch (sayError) {
+      console.error('Failed to send error message:', sayError);
+    }
   }
 });
 
