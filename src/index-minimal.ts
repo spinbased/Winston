@@ -15,9 +15,9 @@ const app = new App({
 });
 
 // Simple test command
-app.command('/legal-help', async ({ command, ack, respond }) => {
+app.command('/legal-help', async ({ ack, respond }) => {
   await ack();
-  await respond('Winston is running! Add API keys to enable full features.');
+  await respond('✅ Winston is running! Add API keys to enable full features.');
 });
 
 // Health check
