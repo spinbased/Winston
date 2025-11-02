@@ -13,13 +13,14 @@ export class EmbeddingService {
   private dimensions = 1536;
 
   constructor() {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY not configured');
-    }
+    const apiKey = process.env.OPENAI_API_KEY;
 
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    if (!apiKey || apiKey.includes('placeholder')) {
+      console.warn('⚠️  OPENAI_API_KEY not configured - embeddings will be limited');
+      this.openai = new OpenAI({ apiKey: 'sk-placeholder' });
+    } else {
+      this.openai = new OpenAI({ apiKey });
+    }
 
     // Initialize Redis for caching
     this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');

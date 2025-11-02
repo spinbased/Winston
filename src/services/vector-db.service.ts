@@ -36,13 +36,14 @@ export class VectorDBService {
   private indexName: string;
 
   constructor() {
-    if (!process.env.PINECONE_API_KEY) {
-      throw new Error('PINECONE_API_KEY not configured');
-    }
+    const apiKey = process.env.PINECONE_API_KEY;
 
-    this.pinecone = new Pinecone({
-      apiKey: process.env.PINECONE_API_KEY,
-    });
+    if (!apiKey || apiKey.includes('placeholder')) {
+      console.warn('⚠️  PINECONE_API_KEY not configured - vector search will be limited');
+      this.pinecone = new Pinecone({ apiKey: 'placeholder' });
+    } else {
+      this.pinecone = new Pinecone({ apiKey });
+    }
 
     this.indexName = process.env.PINECONE_INDEX_NAME || 'legal-knowledge';
   }

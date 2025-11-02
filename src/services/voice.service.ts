@@ -27,13 +27,14 @@ export class VoiceService {
   ];
 
   constructor() {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY not configured');
-    }
+    const apiKey = process.env.OPENAI_API_KEY;
 
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    if (!apiKey || apiKey.includes('placeholder')) {
+      console.warn('⚠️  OPENAI_API_KEY not configured - voice transcription will be limited');
+      this.openai = new OpenAI({ apiKey: 'sk-placeholder' });
+    } else {
+      this.openai = new OpenAI({ apiKey });
+    }
 
     // Ensure temp directory exists
     this.ensureTempDir();

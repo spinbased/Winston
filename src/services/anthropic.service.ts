@@ -24,13 +24,15 @@ export class AnthropicService {
   private model = 'claude-haiku-4-20250514'; // Claude Haiku 4.5
 
   constructor() {
-    if (!process.env.ANTHROPIC_API_KEY) {
-      throw new Error('ANTHROPIC_API_KEY not configured');
-    }
+    const apiKey = process.env.ANTHROPIC_API_KEY;
 
-    this.client = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
+    if (!apiKey || apiKey.includes('placeholder')) {
+      console.warn('⚠️  ANTHROPIC_API_KEY not configured - AI responses will be limited');
+      // Create a dummy client that won't be used
+      this.client = new Anthropic({ apiKey: 'sk-ant-placeholder' });
+    } else {
+      this.client = new Anthropic({ apiKey });
+    }
   }
 
   /**
