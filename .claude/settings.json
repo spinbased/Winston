@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "n8n-winston": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["n8n-mcp"],
+      "env": {
+        "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3MjdjOTZhMi01NDAzLTRiMTQtOWIyOC1kMDI3MWM5OGI0MDAiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzYyMTE2MTMxfQ.IvvNu380EvYG8_SlofcEaxf6flNFr424qVO9Geo2MLM",
+        "N8N_API_URL": "https://n8n.level7labs.ai"
+      }
+    }
+  }
+}

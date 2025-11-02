@@ -21,6 +21,63 @@ const anthropic = process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_API_KE
   ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   : null;
 
+// n8n Configuration
+const N8N_API_URL = process.env.N8N_API_URL || 'https://n8n.level7labs.ai';
+const N8N_API_KEY = process.env.N8N_API_KEY;
+
+// Helper function to trigger n8n workflows
+async function triggerN8nWorkflow(workflowName: string, data: any): Promise<any> {
+  if (!N8N_API_KEY) {
+    console.log('N8N_API_KEY not configured');
+    return null;
+  }
+
+  try {
+    // Get workflow ID by name
+    const workflowsResponse = await fetch(`${N8N_API_URL}/api/v1/workflows`, {
+      headers: { 'X-N8N-API-KEY': N8N_API_KEY }
+    });
+
+    if (!workflowsResponse.ok) {
+      console.error('Failed to fetch workflows:', workflowsResponse.statusText);
+      return null;
+    }
+
+    const workflows: any = await workflowsResponse.json();
+    const workflow = workflows.data?.find((w: any) => w.name === workflowName);
+
+    if (!workflow) {
+      console.log(`Workflow "${workflowName}" not found`);
+      return null;
+    }
+
+    console.log(`Triggering n8n workflow: ${workflowName} (ID: ${workflow.id})`);
+
+    // Execute workflow
+    const response = await fetch(
+      `${N8N_API_URL}/api/v1/workflows/${workflow.id}/execute`,
+      {
+        method: 'POST',
+        headers: {
+          'X-N8N-API-KEY': N8N_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ data })
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Failed to execute workflow:', response.statusText);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('n8n workflow error:', error);
+    return null;
+  }
+}
+
 // Legal expert system prompt
 const LEGAL_SYSTEM_PROMPT = `You are Winston, a master AI legal assistant with comprehensive expertise in:
 - Black's Law Dictionary (all editions)
@@ -92,6 +149,29 @@ app.message(async ({ message, say }) => {
 
     console.log(`[DM] Received: "${text}"`);
 
+    // Try n8n workflow first if configured
+    if (N8N_API_KEY) {
+      console.log('Attempting n8n workflow...');
+
+      await say('🤔 Processing with Winston workflow...');
+
+      const n8nResult = await triggerN8nWorkflow('Winston', {
+        text,
+        user: 'user' in message ? message.user : 'unknown',
+        channel: 'channel' in message ? message.channel : 'unknown',
+        timestamp: Date.now()
+      });
+
+      if (n8nResult) {
+        console.log('n8n workflow executed successfully');
+        // n8n workflow will handle the response
+        return;
+      }
+
+      console.log('n8n workflow failed, falling back to direct AI');
+    }
+
+    // Fallback to direct Anthropic API
     if (!anthropic) {
       await say('👋 Hello! I\'m Winston, your AI legal assistant.\n\n⚠️ AI features are not configured. Please add ANTHROPIC_API_KEY.\n\nFor now, try: `/legal-help [your question]`');
       return;
