@@ -1103,7 +1103,7 @@ receiver.router.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
     message: 'Winston AI Legal Assistant',
-    version: 'production-v2.1',
+    version: 'production-v3.0',
     model: 'claude-sonnet-4-20250514',
     ai: anthropic ? 'enabled' : 'disabled',
     features: {
@@ -1111,7 +1111,10 @@ receiver.router.get('/health', (_req, res) => {
       sonnet_4: true,
       session_management: true,
       context_aware: true,
-      deduplication: true
+      deduplication: true,
+      rag_capable: true,
+      document_analysis: true,
+      slash_commands: 37
     },
     sessions: sessions.size
   });
